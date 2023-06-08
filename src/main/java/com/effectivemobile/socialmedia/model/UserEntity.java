@@ -1,9 +1,15 @@
 package com.effectivemobile.socialmedia.model;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import javax.persistence.*;
+
+import com.effectivemobile.socialmedia.enums.Sex;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.springframework.lang.Nullable;
+
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
+
 import lombok.Data;
 
 import java.util.List;
@@ -30,24 +36,45 @@ public class UserEntity {
     @Column(length = 60)
     private String lastName;
 
+    private Sex sex;
+
     @NotBlank
     @Size(min = 6, max = 100)
     @Column(length = 100)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Subscriber> subscriberList;
+    @ManyToMany(cascade = {CascadeType.ALL}, fetch = FetchType.LAZY)
+    @JoinTable(name = "user_subscribers",
+            joinColumns = {@JoinColumn(name = "user_id")},
+            inverseJoinColumns = {@JoinColumn(name = "subscriber_id")})
+    @Nullable
+    private List<UserEntity> subscriberList;
 
-    @OneToMany(mappedBy = "friend", cascade = CascadeType.ALL)
-    private List<Friends> friendsList;
+    @ManyToMany(cascade = {CascadeType.ALL}, fetch = FetchType.LAZY)
+    @JoinTable(name = "user_signer",
+            joinColumns = {@JoinColumn(name = "signer_id")},
+            inverseJoinColumns = {@JoinColumn(name = "user_id")})
+    @Nullable
+    private List<UserEntity> singerList;
 
-    @OneToMany(mappedBy = "postOwner", cascade = CascadeType.ALL)
-    private List<Post> postList;
+    @ManyToMany(cascade = {CascadeType.ALL}, fetch = FetchType.LAZY)
+    @JoinTable(name = "user_friends",
+            joinColumns = {@JoinColumn(name = "user_id")},
+            inverseJoinColumns = {@JoinColumn(name = "friend_id")})
+    @Nullable
+    private List<UserEntity> friendsList;
 
-    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL)
-    private List<Message> messageList;
+    @ManyToMany(cascade = {CascadeType.ALL}, fetch = FetchType.LAZY)
+    @JoinTable(name = "received_friend_requests",
+            joinColumns = @JoinColumn(name = "receiver_id"),
+            inverseJoinColumns = @JoinColumn(name = "sender_id"))
+    private List<UserEntity> receiverFriendRequests;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @JoinTable(name = "user_role",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles;
+
 }
