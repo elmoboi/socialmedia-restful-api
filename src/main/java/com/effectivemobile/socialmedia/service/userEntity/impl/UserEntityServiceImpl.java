@@ -90,7 +90,7 @@ public class UserEntityServiceImpl implements UserEntityService {
         newUserEntity.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
 
         Role role = roleRepository.findByName("ROLE_USER").orElseThrow(() ->
-                new IllegalArgumentException("role not found"));
+                new IllegalArgumentException("Role not found"));
         newUserEntity.setRoles(Collections.singleton(role));
 
         return userEntityRepository.save(newUserEntity);

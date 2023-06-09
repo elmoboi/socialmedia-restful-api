@@ -2,6 +2,7 @@ package com.effectivemobile.socialmedia.service.message.impl;
 
 import com.effectivemobile.socialmedia.dto.message.MessageRequestDTO;
 import com.effectivemobile.socialmedia.dto.message.MessageResponseDTO;
+import com.effectivemobile.socialmedia.exeption.EmptyMessageListException;
 import com.effectivemobile.socialmedia.exeption.UnauthException;
 import com.effectivemobile.socialmedia.mapper.message.MessageMapper;
 import com.effectivemobile.socialmedia.model.Message;
@@ -74,9 +75,17 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public List<Message> findAllMessagesBetweenUsersEntity(Long senderId, Long recipientId) {
-        List<Message> messageList = messageRepository.findAllBySenderIdAndRecipientId(senderId, recipientId);
-        messageList.addAll(messageRepository.findAllBySenderIdAndRecipientId(recipientId, senderId));
+        UserEntity sender = userEntityRepository.findById(senderId)
+                .orElseThrow(() -> new EntityNotFoundException("Sender not found with id: " + senderId));
+        UserEntity recipient = userEntityRepository.findById(recipientId)
+                .orElseThrow(() -> new EntityNotFoundException("Recipient not found with id: " + recipientId));
+
+        List<Message> messageList = messageRepository.findAllBySenderIdAndRecipientId(sender.getId(), recipient.getId());
+        messageList.addAll(messageRepository.findAllBySenderIdAndRecipientId(sender.getId(), recipient.getId()));
         messageList.sort(Comparator.comparing(Message::getSendDate));
+
+        if(messageList.isEmpty())
+            throw new EmptyMessageListException("No messages found between users.");
 
         return messageList;
     }

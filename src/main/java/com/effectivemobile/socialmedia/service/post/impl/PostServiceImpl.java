@@ -4,6 +4,7 @@ import com.effectivemobile.socialmedia.dto.post.PostRequestDTO;
 import com.effectivemobile.socialmedia.dto.post.PostResponseDTO;
 import com.effectivemobile.socialmedia.dto.post.PostUpdateRequest;
 import com.effectivemobile.socialmedia.dto.userEntity.UserEntityResponseDTO;
+import com.effectivemobile.socialmedia.exeption.PostNotFoundException;
 import com.effectivemobile.socialmedia.mapper.post.PostMapper;
 import com.effectivemobile.socialmedia.mapper.userEntity.UserEntityMapper;
 import com.effectivemobile.socialmedia.model.Post;
@@ -116,7 +117,7 @@ public class PostServiceImpl implements PostService {
         post.setText(postRequestDTO.getText());
         post.setImg(postRequestDTO.getImgUrl());
         UserEntity userEntity = new UserEntity();
-        userEntity.setId(userEntityId);
+        userEntity.setId(userEntity.getId());
         post.setPostOwner(userEntity);
 
 
@@ -126,12 +127,20 @@ public class PostServiceImpl implements PostService {
     @Override
     public void deletePost(Long postId) {
         Post post = getPostById(postId);
+
+        if(post == null)
+            throw new PostNotFoundException("Post not found with id: " + postId);
+
         postRepository.delete(post);
     }
 
     @Override
     public Post updatePost(Long postId, PostUpdateRequest postUpdateRequest) {
         Post post = getPostById(postId);
+
+        if(post == null)
+            throw new PostNotFoundException("Post not found with id: " + postId);
+
         post.setTitle(postUpdateRequest.getTitle());
         post.setText(postUpdateRequest.getText());
         post.setImg(postUpdateRequest.getImgUrl());
